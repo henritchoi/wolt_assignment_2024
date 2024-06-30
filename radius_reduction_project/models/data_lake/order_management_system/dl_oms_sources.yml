@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: dl_oms  
+    tables:
+      - name: dl_oms_purchases
+      # freshness_test
+      - name: dl_oms_delivery_radius_log
+      # freshness_test

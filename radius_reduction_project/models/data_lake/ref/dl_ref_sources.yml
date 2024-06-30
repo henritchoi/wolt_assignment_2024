@@ -1,0 +1,7 @@
+version: 2
+
+sources:
+  - name: dl_reference  
+    tables:
+      - name: dl_ref_hours
+      # freshness_test
