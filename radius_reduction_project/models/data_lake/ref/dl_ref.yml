@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: dl_referemce
+    tables:
+      - name: dl_dbt_ref_hours
+        description: Reference data model giving hourly periods (period_start and period_end separated by 1 hour) in the form of timestamps.
+
