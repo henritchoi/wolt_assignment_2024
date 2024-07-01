@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: dl_dbt_oms_delivery_radius_log
+  - name: dl_dbt_oms_delivery_radius_logs
     description: model fetching the logs of delivery radiuses.
     config:
       meta:

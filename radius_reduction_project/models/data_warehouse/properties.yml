@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: dw_default_delivery_radiuses
+    description: model computing the default deliveyr radiuses over time across the different delivery areas
+    config:
+      meta:
+        owner: "@analytics-engineering"
+      tags: ['delivery_kpis'] 
+    columns:
+      - name: delivery_area_id
+        description: id of the delivery_area
+        tests:
+          - not_null
+     
+  - name: dw_delivery_radius_logs
+    description: >
+      Incrementally loaded model materializing in the DW layer the delivery_radius_logs. 
+      Currently only integrating data from the OMS but will consolidate other sources down the line.
+    config:
+      meta:
+        owner: "@analytics-engineering"
+      tags: ['delivery_kpis'] 
