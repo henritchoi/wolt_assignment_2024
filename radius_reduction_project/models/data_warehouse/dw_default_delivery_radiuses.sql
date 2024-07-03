@@ -1,9 +1,9 @@
 {{
   config(
-    materialized = 'table',
+    materialized = 'table'
     )
 }}
-with bASe AS (
+with be AS (
     SELECT
         delivery_area_id,
         delivery_radius_meters,
@@ -40,7 +40,7 @@ interval_ordinals AS (
                 rows between unbounded preceding and current row
             )
         AS interval_ordinal
-    FROM bASe
+    FROM base
 ),
 
 interval_starts AS (
@@ -70,9 +70,9 @@ interval_durations AS (
         LEAD(interval_start, 1)
             OVER (PARTITION BY delivery_area_id ORDER BY interval_ordinal ASC)
         AS interval_END,
-        --to get interval duration 
+        --to get interval duration, taking minutes instead of hours for precision
         DATEDIFF(
-            hour,
+            min,
             interval_start,
             LEAD(interval_start, 1)
                 OVER (
@@ -89,7 +89,7 @@ default_radius_changes AS (
         interval_END,
         --This displays the changes of default radius only
         CASE
-            WHEN interval_duration > 24 THEN delivery_radius_meters
+            WHEN interval_duration > 1440 THEN delivery_radius_meters
         END AS new_default_radius
     FROM interval_durations
 ),
@@ -98,7 +98,7 @@ main AS (
     SELECT
         delivery_area_id,
         interval_start AS event_started,
-        interval_END AS event_ENDed,
+        interval_END AS event_ended,
         --Filling in all the time intervals OVER which there is no default radius change
         COALESCE(
             new_default_radius,
@@ -109,13 +109,41 @@ main AS (
                         interval_start
                     rows between unbounded preceding and current row
                 )
-        ) AS default_delivery_radius
+        ) AS default_delivery_radius,
+        row_number() over (PARTITION BY delivery_area_id order by event_started desc nulls last) as rn
     FROM default_radius_changes
+),
+
+frontfill as (
+    (
+        SELECT
+            delivery_area_id,
+            event_started,
+            event_ended,
+            default_delivery_radius
+        FROM main
+    )
+    
+    UNION ALL
+
+    (
+        SELECT
+            delivery_area_id,
+            event_ended as event_started,
+            DATEADD(
+                month
+                ,1
+                ,event_started) as event_ended,
+                default_delivery_radius
+        FROM main
+        WHERE 
+            rn = 1
+    )
 )
 
 SELECT 
-    delivery_area_id
-    , default_delivery_radius
-    , event_started
-    , event_ended
-FROM main
+    delivery_area_id,
+    default_delivery_radius,
+    event_started,
+    event_ended
+FROM frontfill
