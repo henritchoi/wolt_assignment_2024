@@ -29,7 +29,7 @@ Task 2 derives directly from task 1.
 **Assumptions and design decisions**
 
 1. **time treatment** : 
-- When calculating the default radiuses in dw_default_delivery_radiuses, time differene was first calculated in minutes for better accuracy. Indeed, datediff in Redhift compares two data points using their date part, meaning date_diff(hour, '2024-01-01 01:59:59', '2024-01-01 03;00;00') = date_diff(hour, '2024-01-01 01:01:01', '2024-01-01 03;59;59') = 2, which is vastly inacurrate. 
+- When calculating the default radiuses in dw_default_delivery_radiuses, time difference was first calculated in minutes for better accuracy. Indeed, datediff in Redhift compares two data points using their date part, meaning date_diff(hour, '2024-01-01 01:59:59', '2024-01-01 03;00;00') = date_diff(hour, '2024-01-01 01:01:01', '2024-01-01 03;59;59') = 2, which is vastly inaccurate. 
 
 - When computing the time intervals on which default delivery radiuses are active, because of the constraints of having them match with hourly periods, some adjustments also had to be made : using a simple function, timestamps were rounded up or down to the closest hour in dm_delivery_radius_reduction_financial_analysis. 
 
@@ -45,11 +45,11 @@ Task 2 derives directly from task 1.
 
 As for performance : 
 - as many models as possible would be incrementalized in the long run, to allow for high frequency refreshes.
-- A lot of window functions were used in dw_default_delivery_radiuses for the computation of default deliery radiuses, as there is fundamentally a recursivity in the problem (on intervals in which the delivery radius is consistent, duration has to be summed by iterating over the subsequent timestamps). The approach taken seemed the most straightforward, is easy to audit and debug, and allows other use cases (analysis on the duration of consistency intervals, on default_radius changes etc..), but performance can definitely be a concern. With more time, another approach with a recursive CTE could be tested out, Choosing the correct sort_key and dist_key would also improve performance once the dataset gets larger.
+- A lot of window functions were used in dw_default_delivery_radiuses for the computation of default delivery radiuses, as there is fundamentally a recursivity in the problem (on intervals in which the delivery radius is consistent, duration has to be summed by iterating over the subsequent timestamps). The approach taken seemed the most straightforward, is easy to audit and debug, and allows other use cases (analysis on the duration of consistency intervals, on default_radius changes etc..), but performance can definitely be a concern. With more time, another approach with a recursive CTE could be tested out, Choosing the correct sort_key and dist_key would also improve performance once the dataset gets larger.
 
 4. **Task 2 update strategy**
 
-- The model for the task 2 was made fully incremental to allow for very frequent update : it is fetching the last day of data but could also be ran more frequently if performance allows it. As long as the cutoff time chosen is in line with expectations and matches across sources, it can be discussed with the stakeholders. The backfill_variable allows for full backfills when it is included in the DBT command running the model.
+- The model for the task 2 was made fully incremental to allow for very frequent updates : it is fetching the last day of data but could also be run more frequently if performance allows it. As long as the cutoff time chosen is in line with expectations and matches across sources, it can be discussed with the stakeholders. The backfill_variable allows for full backfills when it is included in the DBT command running the model.
 
 - The default delivery radius calculation realistically cannot be run every time an event comes in, so something in line with expectations from stakeholders is advisable (once a day, twice a day, hourly, every 15 minutes, every minute if and only if the performance end-to-end allows it). One important note is that delivery radiuses become default ones after 24 hours, so something could be implemented to update specifically the ones that are most likely to change (consistent intervals nearing 24h of constant delivery radius different from the default one) in a complex incremental logic, with the risk of overengineering the logic.
 
