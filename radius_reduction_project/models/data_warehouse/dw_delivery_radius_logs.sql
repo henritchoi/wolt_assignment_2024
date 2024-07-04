@@ -16,6 +16,9 @@ WHERE
 
     {% if is_incremental() %}
     
-      and event_started_timestamp >= coalesce((select max(event_started_timestamp) from {{ this }}), '2000-01-01')
+      AND event_started_timestamp >= 
+            LEAST({{var("backfill_variable", "2100-01-01")}}
+            , dateadd (day, -1, (SELECT max(event_started_timestamp)::date FROM {{this}})) 
+            )
     
     {% endif %}

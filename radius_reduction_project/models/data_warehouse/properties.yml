@@ -2,7 +2,13 @@ version: 2
 
 models:
   - name: dw_default_delivery_radiuses
-    description: model computing the default deliveyr radiuses over time across the different delivery areas
+    description: >
+      Model computing the default delivery radiuses over time across the different delivery areas.
+      One important note concerning the usage of datediff is that minutes were chosen as a unit there to increase precision, as date_diff only takes the date_part to compare.
+      This means that datediff(hour, '2023-01-03 01:59:59', '2023-01-03 03:00:01') = 2, which is vastly inacurrate.
+      This is a design choice that should be be made with the business, with the important precision that consistency is also very important, and that different table displaying the same KPI should ideally display the same value.
+      Not doing so undermines the trust in the data provided by the team.
+
     config:
       meta:
         owner: "@analytics-engineering"
